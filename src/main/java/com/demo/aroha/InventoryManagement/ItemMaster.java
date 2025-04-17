@@ -45,8 +45,8 @@ public class ItemMaster {
 	
 	@Override
 	public String toString() {
-		return "ItemMaster [itemId=" + itemId + ", itemName=" + itemName + ", quantityOnHand=" + quantityOnHand
-				+ ", price=" + price + "]";
+		return "itemId=" + itemId + ", itemName=" + itemName + ", quantityOnHand=" + quantityOnHand
+				+ ", price=" + price;
 	}
 	
 	

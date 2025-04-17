@@ -3,24 +3,29 @@ package com.demo.aroha.InventoryManagement;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.Map.Entry;
 import java.util.Scanner;
 
 public class InventoryManagement {
 
 	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
 
-		HashMap<Integer, ItemMaster> hm = new HashMap<>();
-		HashMap<String, Transactions> tm = new HashMap<>();
-		ItemMaster itemMaster;
+		if (!InventoryRepo.testConnection()) {
+			System.out.println("Exiting application due to database connection failure.");
+			return; // to exit the program
+		}
+		Scanner sc = new Scanner(System.in);
+		HashMap<Integer, ItemMaster> hm = InventoryRepo.getItemsFromDatabase();
+		HashMap<String, Transactions> tm = InventoryRepo.getTransactionsFromDatabase();
+
+		//HashMap<Integer, ItemMaster> hm = new HashMap<>();
+		//HashMap<String, Transactions> tm = new HashMap<>();
 
 		System.out.println("============ Menu ===============");
 		System.out.println("1. Add New Items");
 		System.out.println("2. Do Transactions");
 		System.out.println("3. View All Available Items in the Store");
 		System.out.println("4. View All Transactions happened ");
-		System.out.println("4. exit");
+		System.out.println("5. exit");
 
 		while (true) {
 
@@ -33,11 +38,11 @@ public class InventoryManagement {
 				while (true) {
 					System.out.println("Enter the ItemId:");
 					int itemId = sc.nextInt();
-					sc.nextLine();
+					
 					if (!hm.containsKey(itemId)) {
 
 						System.out.println("Enter the Item Name :");
-						String itemName = sc.nextLine();
+						String itemName = sc.next();
 						System.out.println("Enter Price of the Item :");
 						double itemPrice = sc.nextDouble();
 						sc.nextLine();
@@ -47,9 +52,11 @@ public class InventoryManagement {
 
 						hm.put(item.getItemId(), item);
 						System.out.println("Inserting to database !!!!!");
+						
 						InventoryRepo.saveItems(hm);
 
 						System.out.println("Item added Successufully !!!!! ");
+
 						break;
 					} else {
 						System.out.println("Duplicate id please enter other id !!!");
@@ -75,7 +82,7 @@ public class InventoryManagement {
 						double price = hm.get(itemId).getPrice();
 						int totalQuantity = hm.get(itemId).getQuantityOnHand();
 						String iname = hm.get(itemId).getItemName();
-						System.out.println("price of each " + iname + " is " + price);
+						System.out.println("selected item is "+iname+" and price of each " + iname + " is " + price);
 						int quantityNeeded = 0;
 						double totalAmout = 0;
 						while (true) {
@@ -87,10 +94,15 @@ public class InventoryManagement {
 							if (quantityNeeded > totalQuantity) {
 								System.out.println("No Stock found item has only " + totalQuantity + " Stocks");
 
-							} else {
+							} 
+							else if(quantityNeeded<=0) {
+								System.out.println("quantity must be more than zero");
+								
+							}
+							else {
 								totalAmout = quantityNeeded * price;
 								totalQuantity = totalQuantity - quantityNeeded;
-								System.out.println("Total Bill of " + quantityNeeded + " Items is " + totalAmout);
+								System.out.println("Total Bill of " + quantityNeeded + iname +" "+" is " + totalAmout);
 
 								break;
 							}
@@ -106,26 +118,29 @@ public class InventoryManagement {
 						String payment2 = "Cash";
 
 						while (true) {
-							System.out.println("Enter the payment Mode :");
-							String payment = sc.nextLine();
+							System.out.println("Enter the payment Mode UPI/CASH :");
+							String payment = sc.next();
 
 							if (payment.equalsIgnoreCase(payment1)) {
 								Random random = new Random();
-								String transId = payment1 + random.nextInt(9000000);
+								String transId = "TNX"+payment1 + random.nextInt(9000000);
 								dateTime = LocalDateTime.now();
 								Transactions t1 = new Transactions(transId, itemId, quantityNeeded, totalAmout,
 										dateTime);
 								tm.put(t1.getTransId(), t1);
+
 								InventoryRepo.insertTransactions(tm);
 								InventoryRepo.updateItems(hm);
 								System.out.println("Transation done successufully with " + payment1 + "!!!!");
-								/*
-								 * for (Transactions t : tm.values()) { System.out.println(t); }
-								 */
+
+								for (Transactions t : tm.values()) {
+									System.out.println(t);
+								}
+
 								break;
 							} else if (payment.equalsIgnoreCase(payment2)) {
 								Random random = new Random();
-								String transId = payment2 + random.nextInt(9000000);
+								String transId ="TNX"+ payment2 + random.nextInt(9000000);
 								dateTime = LocalDateTime.now();
 								Transactions t1 = new Transactions(transId, itemId, quantityNeeded, totalAmout,
 										dateTime);
@@ -137,12 +152,13 @@ public class InventoryManagement {
 
 								System.out.println("Transation done successufully with " + payment2 + "!!!!");
 
-								/*
-								 * for (Transactions t : tm.values()) { System.out.println(t); }
-								 */
+								for (Transactions t : tm.values()) {
+									System.out.println(t);
+								}
+
 								break;
 							} else {
-								System.out.println("Idiate first make payment !!!!!");
+								System.out.println("Idiate First make payment !!!!!");
 
 							}
 
